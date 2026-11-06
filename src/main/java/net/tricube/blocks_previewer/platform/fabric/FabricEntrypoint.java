@@ -2,7 +2,7 @@ package net.tricube.blocks_previewer.platform.fabric;
 
 //? fabric {
 
-/*import dev.kikugie.fletching_table.annotation.fabric.Entrypoint;
+import dev.kikugie.fletching_table.annotation.fabric.Entrypoint;
 import net.fabricmc.api.ModInitializer;
 import net.tricube.blocks_previewer.ModInit;
 
@@ -15,4 +15,4 @@ public class FabricEntrypoint implements ModInitializer {
 //		FabricEventSubscriber.registerEvents();
 	}
 }
-*///?}
+//?}

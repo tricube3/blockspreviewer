@@ -1,7 +1,7 @@
 {
   "package": "net.tricube.blocks_previewer.mixin",
   "required": true,
-  "refmap": "better_tab.mixins.refmap.json",
+  "refmap": "blocks_previewer.mixins.refmap.json",
   "minVersion": "0.8",
   "compatibilityLevel": "${java}",
 
