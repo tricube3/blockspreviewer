@@ -1,7 +1,7 @@
 mod.id = "blocks_previewer"
 mod.name = "Blocks Previewer"
 mod.group = "net.tricube"
-mod.version = "2.1.1"
+mod.version = "2.2.0"
 mod.channel_tag = ""
 mod.description = "Client-side mod to preview how blocks will be orientated when placed!"
 mod.authors = ["tricube"]
@@ -44,6 +44,18 @@ deps.minecraft = "26.1"
 deps.fabric-api = "0.145.1+26.1"
 deps.modmenu = "18.0.0-beta.1"
 publish.additionalVersions = ["26.1.1", "26.1.2"]
+
+[fabric."26.2"]
+deps.craft-config = "1.1.12"
+deps.minecraft = "26.2"
+deps.fabric-api = "0.153.0+26.2"
+deps.modmenu = "20.0.0-beta.4"
+
+[fabric."26.3"]
+deps.craft-config = "1.1.13"
+deps.minecraft = "26.3"
+deps.fabric-api = "0.165.2+26.3"
+deps.modmenu = "21.0.0"
 
 [forge]
 deps.craft-config = "1.1.6"

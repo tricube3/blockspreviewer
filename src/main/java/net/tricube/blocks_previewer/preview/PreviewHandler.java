@@ -3,9 +3,9 @@ package net.tricube.blocks_previewer.preview;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 //?if >=26.1{
-/*import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
-*///?}
+//?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.BlockItem;
@@ -36,14 +36,15 @@ public class PreviewHandler {
 	public static boolean isObstructed = false;
     public static void onRenderWorld(PoseStack poseStack
 			//?if >=26.1
-			 //,SubmitNodeCollector submitNodeCollector
+			 ,SubmitNodeCollector submitNodeCollector
 	) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
         if (lastPreviewStates.isEmpty()) return;
-        var camera = mc.gameRenderer.getMainCamera();
+		//~ if >=26.2 '.getMainCamera()' -> '.mainCamera()'
+        var camera = mc.gameRenderer.mainCamera();
 		//~ if >=1.21.11 '.getPosition()' -> '.position()'
-        Vec3 cameraPos = camera.getPosition();
+        Vec3 cameraPos = camera.position();
 
         for (int i = 0; i < lastPreviewStates.size(); i++) {
             BlockState state = lastPreviewStates.get(i);
@@ -55,14 +56,20 @@ public class PreviewHandler {
             double z = pos.getZ() - cameraPos.z;
             poseStack.translate(x, y, z);
 			Config.PreviewMode previewMode = Config.previewMode.get();
+			if(isObstructed && !Config.showObstructed.get()) return;
             if(previewMode == Config.PreviewMode.TRANSPARENT){
                 PreviewRenderer.renderTransparentBlock(poseStack, state, pos
 						//?if >=26.1
-						//,submitNodeCollector
-						, mc);
+						,submitNodeCollector
+						, mc,isObstructed);
             }
             else if(previewMode == Config.PreviewMode.OUTLINE){
-                PreviewRenderer.renderBlockOutline(poseStack, state, pos, mc);
+				//?if >=26.2{
+				PreviewRenderer.renderBlockOutline(poseStack, state, pos, mc,submitNodeCollector, isObstructed);
+				//?} else{
+				/*PreviewRenderer.renderBlockOutline(poseStack, state, pos, mc, isObstructed);
+				*///?}
+
             }
             poseStack.popPose();
         }
@@ -128,12 +135,12 @@ public class PreviewHandler {
 			return;
 		}
 		//~ if >=1.21.11 '.of' -> '.placementContext'
-		if(!mc.level.isUnobstructed(previewState, placementPos, CollisionContext.of(mc.player))){
+		if(!mc.level.isUnobstructed(previewState, placementPos, CollisionContext.placementContext(mc.player))){
 			isObstructed = true;
 		}
 		else{
 			isObstructed = false;
-		} //maybe implement a red tint when obstructed
+		}
 
 		updatePreviewData(placementPos, previewState, blockItem.getBlock(), mc, placeContext);
     }

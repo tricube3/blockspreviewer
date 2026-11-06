@@ -7,17 +7,24 @@ import net.minecraft.client.Minecraft;
 
 import net.minecraft.client.renderer.LevelRenderer;
 
-//?if >=1.21.11{
+//?if >=26.2{
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.util.LightCoordsUtil;
+//?}  else if >=1.21.11 {
 /*import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-*///?}else{
-import net.minecraft.client.renderer.RenderType;
-//?}
+*///?}else {
+/*import net.minecraft.client.renderer.RenderType;
+*///?}
+
 
 import net.minecraft.client.renderer.texture.OverlayTexture;
 
 import net.minecraft.core.BlockPos;
 
+
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -25,7 +32,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.tricube.blocks_previewer.config.Config;
 
 //?if >=26.1{
-/*import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.ARGB;
 import net.minecraft.client.color.block.BlockColors;
@@ -36,24 +43,26 @@ import com.mojang.blaze3d.vertex.QuadInstance;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 
 import org.joml.Vector3fc;
-*///?}
+//?}
 
 import java.awt.*;
 
 public class PreviewRenderer {
+	static final float redTint = 0.4f;
 	//?if >=26.1{
-	/*private static ModelBlockRenderer modelBlockRenderer;
+	private static ModelBlockRenderer modelBlockRenderer;
 	private static final MovingBlockRenderState MOVING_BLOCK_STATE = new MovingBlockRenderState();
 
 	public static void renderTransparentBlock(PoseStack poseStack, BlockState state, BlockPos pos,
-											  SubmitNodeCollector collector, Minecraft mc) {
+											  SubmitNodeCollector collector, Minecraft mc, boolean isObstructed) {
 		if (state == null || mc.level == null) return;
 		if (modelBlockRenderer == null) {
 			modelBlockRenderer = new ModelBlockRenderer(true, true, BlockColors.createDefault());
 		}
 
 		float alpha = Config.transparentOpacity.get();
-		int light = LevelRenderer.getLightCoords(mc.level, pos);
+		//~ if >=26.2 'LevelRenderer.' -> 'LightCoordsUtil.'
+		int light = LightCoordsUtil.getLightCoords(mc.level, pos);
 
 		MOVING_BLOCK_STATE.blockState = state;
 		MOVING_BLOCK_STATE.blockPos = pos;
@@ -62,7 +71,7 @@ public class PreviewRenderer {
 		BlockStateModel model = mc.getModelManager().getBlockStateModelSet().get(state);
 		poseStack.pushPose();
 		collector.submitCustomGeometry(poseStack, RenderTypes.translucentMovingBlock(), (pose, buffer) -> {
-			VertexConsumer alphaConsumer = createAlphaVertexConsumer(buffer, alpha);
+			VertexConsumer alphaConsumer = createAlphaVertexConsumer(buffer, alpha,isObstructed);
 			modelBlockRenderer.tesselateBlock(
 					(x, y, z, quad, instance) -> {
 						for (int v = 0; v < 4; v++) {
@@ -74,6 +83,10 @@ public class PreviewRenderer {
 							float r = ARGB.redFloat(c);
 							float g = ARGB.greenFloat(c);
 							float b = ARGB.blueFloat(c);
+							if (isObstructed) {
+								g *= redTint;
+								b *= redTint;
+							}
 							alphaConsumer.addVertex(pose, p.x() + x, p.y() + y, p.z() + z)
 									.setColor(r, g, b, alpha)
 									.setUv(u, vf)
@@ -94,39 +107,41 @@ public class PreviewRenderer {
 		poseStack.popPose();
 	}
 
-	*///?}else{
-	public static void renderTransparentBlock(PoseStack poseStack, BlockState state, BlockPos pos, Minecraft mc) { //TODO: add support for rendering block entities
+	//?}else{
+	/*public static void renderTransparentBlock(PoseStack poseStack, BlockState state, BlockPos pos, Minecraft mc,boolean isObstructed) { //TODO: add support for rendering block entities
 		float alpha = Config.transparentOpacity.get();
 
 		if (state == null || mc.level == null) return;
 		int light = LevelRenderer.getLightColor(mc.level, pos);
 		//~ if >=1.21.11 'RenderType' -> 'RenderTypes'
-		VertexConsumer originalConsumer = mc.renderBuffers().bufferSource().getBuffer(RenderType.translucentMovingBlock());
-		VertexConsumer alphaConsumer = createAlphaVertexConsumer(originalConsumer,alpha);
-		int overlay = PreviewHandler.isObstructed
-				? OverlayTexture.pack(OverlayTexture.u(1.0f), true)  // "hurt" red flash
-				: OverlayTexture.NO_OVERLAY;
+		VertexConsumer originalConsumer = mc.renderBuffers().bufferSource().getBuffer(RenderTypes.translucentMovingBlock());
+		VertexConsumer alphaConsumer = createAlphaVertexConsumer(originalConsumer,alpha,isObstructed);
 		poseStack.pushPose();
 		try {
-
-			mc.getBlockRenderer().renderSingleBlock(
+			mc.getBlockRenderer().renderBatched(
 					state,
+					pos,
+					mc.level,
 					poseStack,
-					renderType -> alphaConsumer,
-					light,
-					overlay
+					alphaConsumer,
+					false,
+					RandomSource.create()
 			);
 
 		} finally {
 			poseStack.popPose();
 		}
 		//~ if >=1.21.11 'RenderType' -> 'RenderTypes'
-		mc.renderBuffers().bufferSource().endBatch(RenderType.translucentMovingBlock());
+		mc.renderBuffers().bufferSource().endBatch(RenderTypes.translucentMovingBlock());
 	}
-	//?}
+	*///?}
 
 
-    public static void renderBlockOutline(PoseStack poseStack, BlockState state, BlockPos pos, Minecraft mc) {
+    public static void renderBlockOutline(PoseStack poseStack, BlockState state, BlockPos pos, Minecraft mc
+	//? if >=26.2
+	,SubmitNodeCollector collector
+    ,boolean isObstructed
+	) {
         if (state == null || mc.level == null) return;
 
         CollisionContext collisionContext = CollisionContext.of(mc.player);
@@ -139,7 +154,12 @@ public class PreviewRenderer {
         }
         Color color;
 		int finalColor = 0x00000000;
-		color = Config.outlineColor.get();
+		if(isObstructed){
+			color = Config.obstructedOutline.get();
+		}
+		else {
+			color = Config.outlineColor.get();
+		}
         if (mc.level != null) {
             int lightLevel = mc.level.getMaxLocalRawBrightness(pos);
             float brightness = 0.3f + (lightLevel / 15f) * 0.7f;
@@ -152,24 +172,37 @@ public class PreviewRenderer {
 			g = (int) (g * brightness);
 			b = (int) (b * brightness);
 
-
+			if (isObstructed) {
+				g *= redTint;
+				b *= redTint;
+			}
 			int alpha = color.getAlpha();
 			if (alpha == 0) alpha = 0xFF;
 
 			finalColor = (alpha << 24) | (r << 16) | (g << 8) | b;
         }
-		//?if>= 1.21.11{
-		/*VertexConsumer vertexConsumer = mc.renderBuffers().bufferSource().getBuffer(RenderTypes.SECONDARY_BLOCK_OUTLINE);
-		ShapeRenderer.renderShape(
+		//?if >=26.2{
+		collector.submitShapeOutline(
 				poseStack,
-				vertexConsumer,
 				shape,
-				0, 0, 0,
+				RenderTypes.SECONDARY_BLOCK_OUTLINE,
 				finalColor,
-				mc.getWindow().getAppropriateLineWidth()
+				mc.getWindow().getAppropriateLineWidth(),
+				false
 		);
-		*///?}else{
-		float r = ((finalColor >> 16) & 0xFF) / 255f;
+
+		//?}else if>= 1.21.11{
+//		VertexConsumer vertexConsumer = mc.renderBuffers().bufferSource().getBuffer(RenderTypes.SECONDARY_BLOCK_OUTLINE);
+//		ShapeRenderer.renderShape(
+//				poseStack,
+//				vertexConsumer,
+//				shape,
+//				0, 0, 0,
+//				finalColor,
+//				mc.getWindow().getAppropriateLineWidth()
+//		);
+		//?}else{
+		/*float r = ((finalColor >> 16) & 0xFF) / 255f;
 		float g = ((finalColor >> 8)  & 0xFF) / 255f;
 		float b = ((finalColor)       & 0xFF) / 255f;
 		float a = ((finalColor >> 24) & 0xFF) / 255f;
@@ -181,11 +214,11 @@ public class PreviewRenderer {
 				false
 		);
 
-		//?}
+		*///?}
 
     }
 
-    private static VertexConsumer createAlphaVertexConsumer(VertexConsumer original, float alphaMultiplier) {
+    private static VertexConsumer createAlphaVertexConsumer(VertexConsumer original, float alphaMultiplier,boolean isObstructed) {
         return new VertexConsumer() {
             @Override
             public VertexConsumer addVertex(float x, float y, float z) {
@@ -209,6 +242,12 @@ public class PreviewRenderer {
                 int r = (color >> 16) & 0xFF;
                 int g = (color >> 8) & 0xFF;
                 int b = color & 0xFF;
+				//?if < 26.2{
+//				if (isObstructed) {
+//					g *= redTint;
+//					b *= redTint;
+//				}
+				//?}
                 int newAlpha = Math.max(0, Math.min(255, (int)(a * alphaMultiplier)));
                 int newColor = (newAlpha << 24) | (r << 16) | (g << 8) | b;
                 return original.setColor(newColor);
@@ -234,8 +273,13 @@ public class PreviewRenderer {
             public VertexConsumer setUv2(int u, int v) {
                 return original.setUv2(u, v);
             }
-
-            @Override
+			//?if >=26.3{
+	        /*@Override
+			public VertexConsumer setUv3(float u, float v) {
+				return null;
+			}
+			*///?}
+			@Override
             public VertexConsumer setNormal(PoseStack.Pose pose, float x, float y, float z) {
                 return original.setNormal(pose, x, y, z);
             }
@@ -245,11 +289,11 @@ public class PreviewRenderer {
                 return original.setNormal(x, y, z);
             }
 			//?if>=1.21.11{
-			/*@Override
+			@Override
 			public VertexConsumer setLineWidth(float f) {
 				return original.setLineWidth(f);
 			}
-			*///?}
+			//?}
 
         };
     }

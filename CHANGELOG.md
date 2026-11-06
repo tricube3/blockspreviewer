@@ -1,0 +1,3 @@
+- fixed crash with securitycraft
+- update to 26.2, 26.3
+- added red tint when obstructed

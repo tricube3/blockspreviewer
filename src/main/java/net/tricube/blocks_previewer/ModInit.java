@@ -2,17 +2,17 @@ package net.tricube.blocks_previewer;
 
 import net.tricube.blocks_previewer.platform.Platform;
 import net.tricube.blocks_previewer.config.Config;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 //? fabric {
-/*import net.tricube.blocks_previewer.platform.fabric.FabricPlatform;
-*///?} neoforge {
-import net.tricube.blocks_previewer.platform.neoforge.NeoforgePlatform;
- //?} forge {
+import net.tricube.blocks_previewer.platform.fabric.FabricPlatform;
+//?} neoforge {
+/*import net.tricube.blocks_previewer.platform.neoforge.NeoforgePlatform;
+ *///?} forge {
 /*import net.tricube.blocks_previewer.platform.forge.ForgePlatform;
  *///?}
 
@@ -44,27 +44,27 @@ public class ModInit {
 
 	private static Platform createPlatformInstance() {
 		//? fabric {
-		/*return new FabricPlatform();
-		*///?} neoforge {
-		return new NeoforgePlatform();
-		 //?} forge {
+		return new FabricPlatform();
+		//?} neoforge {
+		/*return new NeoforgePlatform();
+		 *///?} forge {
 		/*return new ForgePlatform();
 		 *///?}
 	}
 
-	private static ResourceLocation id(String path) {
+	private static Identifier id(String path) {
 		//? >=1.21 {
-		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 		 //?} < 1.21 {
-		/*return new ResourceLocation(MOD_ID, path);
+		/*return new Identifier(MOD_ID, path);
 		*///?}
 	}
 
-	private static ResourceLocation id(String namespace, String path) {
+	private static Identifier id(String namespace, String path) {
 		//? >=1.21 {
-		return ResourceLocation.fromNamespaceAndPath(namespace, path);
+		return Identifier.fromNamespaceAndPath(namespace, path);
 		//?} < 1.21 {
-		/*return new ResourceLocation(namespace, path);
+		/*return new Identifier(namespace, path);
 		*///?}
 	}
 

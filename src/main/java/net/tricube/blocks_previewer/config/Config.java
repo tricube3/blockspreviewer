@@ -41,6 +41,11 @@ public class Config {
 //			ConfigOption.enumOption(Component.literal("Preview Activation"), PreviewActivation.class, PreviewActivation.TOGGLE)
 //					.description(Component.literal("Conditions to enable the preview."));
 
+	public static final ConfigOption<Boolean> showObstructed =
+			ConfigOption.booleanOption(Component.literal("Show Obstructed"), true)
+					.description(Component.literal("Display a red tint when the block is not placeable instead."));
+
+
 	public static final ConfigOption<Float> transparentOpacity =
 			ConfigOption.floatOption(Component.literal("Transparent Opacity"), 0.62f)
 					.description(Component.literal("Opacity for transparent rendering."));
@@ -103,8 +108,10 @@ public class Config {
 											.defaultKey(InputConstants.UNKNOWN.getValue())
 											.mode(ConfigKeybinds.Mode.TOGGLE)
 											.notify(true)))
+							.option(showObstructed.controller(new BooleanController()))
 							.option(transparentOpacity.controller(new SliderController<>(0.0f, 1.0f)))
 							.option(outlineColor.controller(new ColorController()))
+							.option(obstructedOutline.controller(new ColorController()))
 							.option(disableOutline.controller(new BooleanController()))
 //							.option(previewActivation.controller(new EnumController<>()))
 							.build())

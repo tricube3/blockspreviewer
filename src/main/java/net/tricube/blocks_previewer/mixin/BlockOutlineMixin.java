@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class BlockOutlineMixin {
 	//? if <=1.21.1 && !fabric{
 
-    @Inject(
+    /*@Inject(
         method = "renderHitOutline",
         at = @At("HEAD"),
         cancellable = true
@@ -32,5 +32,5 @@ public class BlockOutlineMixin {
             }
         }
     }
-	//?}
+	*///?}
 }
